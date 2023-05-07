@@ -1,0 +1,18 @@
+import com.atlassian.jira.component.ComponentAccessor
+
+def priorityField = getFieldById("priority")
+def priorityValue = priorityField.getValue().getName()
+
+if (priorityValue in ["High", "Highest"]) {
+    def summaryField = getFieldById("summary")
+    def summaryValue = summaryField.getValue()
+    if (!summaryValue.startsWith("URGENT: ")) {
+        summaryField.setFormValue("URGENT: " + summaryValue)
+    }
+} else {
+    def summaryField = getFieldById("summary")
+    def summaryValue = summaryField.getValue()
+    if (summaryValue.startsWith("URGENT: ")) {
+        summaryField.setFormValue(summaryValue.substring("URGENT: ".length()))
+    }
+}

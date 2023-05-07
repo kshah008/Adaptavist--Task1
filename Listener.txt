@@ -1,0 +1,21 @@
+import com.atlassian.jira.component.ComponentAccessor
+
+def loggedInUser = ComponentAccessor.jiraAuthenticationContext.loggedInUser
+def issueService = ComponentAccessor.issueService
+
+def issue = event.issue
+def issueId = issue.id
+def comments = ComponentAccessor.commentManager.getComments(issue).reverse()
+
+def lastComment = comments.find { it.authorApplicationUser != null }
+
+if (lastComment) {
+    def issueInputParameters = issueService.newIssueInputParameters()
+    issueInputParameters.setDescription(lastComment.getBody())
+    def updateValidationResult = issueService.validateUpdate(loggedInUser, issueId, issueInputParameters)
+    assert updateValidationResult.isValid() : updateValidationResult.errorCollection
+    def issueResult = issueService.update(loggedInUser, updateValidationResult)
+    assert issueResult.isValid() : issueResult.errorCollection
+} else {
+    log.warn("No comments found for issue ${issue.key}")
+}
